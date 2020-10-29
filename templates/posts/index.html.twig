@@ -3,7 +3,11 @@
 {% block title %} {% endblock %}
 
 {% block body %}
-<a href="{{ path('new_blog_post') }}">[Add]</a><br><br>
+    <form action="{{ path('blog_search') }}" method="get">
+        <input type="search" aria-label="Search" name="q">
+        <button type="submit">Ищем</button>
+    </form>
+    <a href="{{ path('new_blog_post') }}">[Add]</a><br><br>
     {% for post in posts %}
        <a href="{{ path('blog_post_delete', {'slug': post.slug}) }}">[Del]</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{ path('blog_post_edit', {'slug': post.slug}) }}">[Edit]</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{ path('blog_show', {'slug': post.slug}) }}">{{ post.title }}</a><br><br>
     {% endfor %}

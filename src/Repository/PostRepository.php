@@ -11,6 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Post|null findOneBy(array $criteria, array $orderBy = null)
  * @method Post[]    findAll()
  * @method Post[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Post[]    searchByQuery()
  */
 class PostRepository extends ServiceEntityRepository
 {
@@ -19,10 +20,15 @@ class PostRepository extends ServiceEntityRepository
         parent::__construct($registry, Post::class);
     }
 
-    // /**
-    //  * @return Post[] Returns an array of Post objects
-    //  */
-    /*
+    public function searchByQuery(string $query)
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.title LIKE :query')
+            ->setParameter('query', '%'. $query. '%')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findByExampleField($value)
     {
         return $this->createQueryBuilder('p')
@@ -34,9 +40,7 @@ class PostRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
 
-    /*
     public function findOneBySomeField($value): ?Post
     {
         return $this->createQueryBuilder('p')
@@ -46,5 +50,4 @@ class PostRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
 }

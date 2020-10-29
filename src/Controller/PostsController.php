@@ -36,6 +36,20 @@ class PostsController extends AbstractController
         ]);
     }
 
+
+    /**
+    * @Route("/posts/search", name="blog_search")
+    */
+    public function search(Request $request)
+    {
+        $query = $request->query->get('q');
+        $posts = $this->postRepository->searchByQuery($query);
+
+        return $this->render('posts/query.posts.html.twig', [
+            'posts' => $posts
+        ]);
+    }   
+
     /**
      * @Route("/posts/new", name="new_blog_post")
      */
@@ -103,18 +117,5 @@ class PostsController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('blog_posts');
-    }
-
-    /**
-    * @Route("/posts/search", name="blog_search")
-    */
-    public function search(Request $request)
-    {
-        $query = $request->query->get('q');
-        $posts = $this->postRepository->searchByQuery($query);
-
-        return $this->render('blog/query_post.html.twig', [
-            'posts' => $posts
-        ]);
-    }    
+    } 
 }

@@ -22,7 +22,8 @@ security:
             anonymous: true
             lazy: true
             logout:
-                path: logout            
+                path: logout
+                target: login         
             provider: database_users
 
             # activate different ways to authenticate

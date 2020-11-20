@@ -27,18 +27,15 @@ class SecurityController
      */
     public function login(AuthenticationUtils $authenticationUtils)
     {
-        $debug="Default debug string";
-        
-        
-        
+        $debug="";
         
         $lastUsername = $authenticationUtils->getLastUsername();
         $error = $authenticationUtils->getLastAuthenticationError();
 
-        if($lastUsername) $debug .= "<br>lastUsername: ".$lastUsername;
-        if($error) $debug .= "<br>error: ".$error;        
+        if($lastUsername) $debug .= " lastUsername: ".$lastUsername;    
 
         return new Response($this->twig->render('security/login.html.twig', [
+            'form_action' => '/login',
             'last_username' => $lastUsername,
             'error' =>  $error,
             'debug' => $debug

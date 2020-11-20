@@ -26,6 +26,8 @@ class Post
 
     /**
      * @ORM\Column(type="text", nullable=false)
+     * 
+     * @Assert\NotBlank()
      */
     private $body;
 

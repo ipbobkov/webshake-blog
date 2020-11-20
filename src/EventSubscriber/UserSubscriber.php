@@ -5,6 +5,7 @@ namespace App\EventSubscriber;
 use App\Event\RegisteredUserEvent;
 use App\Service\Mailer;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
 use Twig_Error_Loader;
 use Twig_Error_Runtime;
 use Twig_Error_Syntax;

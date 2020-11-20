@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -14,31 +16,59 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(name="user")
  * @UniqueEntity(fields={"email"}, message="You already have an account!")
  */
-class User implements UserInterface
+final class User implements UserInterface
 {
+    public const GITHUB_OAUTH = 'Github';
+    public const GOOGLE_OAUTH = 'Google';
 
     public const ROLE_USER = 'ROLE_USER';
-
-
+    public const ROLE_ADMIN = 'ROLE_ADMIN';
 
     /**
      * @var int
      *
      * @ORM\Id()
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\GeneratedValue()
+     * @ORM\Column(type="bigint")
      */
     private $id;
 
     /**
-     * @var string
+     * @var int
      *
-     * @ORM\Column(type="string", unique=true)
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $clientId;
+
+    /**
+     * @var string
+     * 
+     * @ORM\Column(type="string", length=191, unique=true)
      * @Assert\NotBlank()
      * @Assert\Email()
-     * @Assert\Length(min=10, max=255)
      */
     private $email;
+
+    /**
+     * @var int
+     *
+     * @ORM\Column(type="string")
+     */
+    private $username;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(type="string")
+     */
+    private $oauthType;
+
+    /**
+     * @var DateTimeInterface
+     *
+     * @ORM\Column(type="datetime")
+     */
+    private $lastLogin;
 
     /**
      * @var string
@@ -49,7 +79,7 @@ class User implements UserInterface
 
     /**
      * @var string
-     *
+     * 
      * @Assert\NotBlank()
      */
     private $plainPassword;
@@ -62,6 +92,13 @@ class User implements UserInterface
     private $roles;
 
     /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $enabled;
+
+    /**
      * @var string
      *
      * @ORM\Column(type="string", nullable=true)
@@ -69,97 +106,91 @@ class User implements UserInterface
     private $confirmationCode;
 
     /**
-     * @var bool
-     *
-     * @ORM\Column(type="boolean")
+     * @param $clientId
+     * @param string $email
+     * @param string $username
+     * @param string $oauthType
+     * @param string $roles
      */
-    private $enabled;
-
-
-
-
-
-    public function __construct()
-    {
-        $this->roles = [self::ROLE_USER];
-        $this->enabled = false;
-    }
-
-
-
-
-
-
-
-
-
-    /**
-     * @return array
-     */
-    public function getRoles()
-    {
-        return [
-            'ROLE_USER'
-        ];
-    }
-
-    /**
-     * @param $roles
-     *
-     * @return $this
-     */
-    public function setRoles($roles): self
-    {
+    public function __construct(
+        $clientId,
+        string $email,
+        string $username,
+        string $oauthType,
+        string $roles
+    ) {
+        $this->clientId = $clientId;
+        $this->email = $email;
+        $this->username = $username;
+        $this->oauthType = $oauthType;
+        $this->lastLogin = new DateTime('now');
         $this->roles = $roles;
-
-        return $this;
     }
 
     /**
-     * @return string
-     */
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    /**
-     * @param string $password
+     * @param string $clientId
+     * @param string $email
+     * @param string $username
      *
      * @return User
      */
-    public function setPassword(string $password): self
+    public static function fromGoogleRequest(
+        string $clientId,
+        string $email,
+        string $username
+    ): User
     {
-        $this->password = $password;
-
-        return $this;
+        return new self(
+            $clientId,
+            $email,
+            $username,
+            self::GOOGLE_OAUTH,
+            self::ROLE_USER
+        );
     }
 
     /**
-     * @return null
+     * @param int $clientId
+     * @param string $email
+     * @param string $username
+     *
+     * @return User
      */
-    public function getSalt()
+    public static function fromGithubRequest(
+        int $clientId,
+        string $email,
+        string $username
+    ): User
     {
-        return null;
+        return new self(
+            $clientId,
+            $email,
+            $username,
+            self::GITHUB_OAUTH,
+            self::ROLE_USER
+        );
+    }
+
+    /**
+     * @return int
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return int
+     */
+    public function getClientId(): int
+    {
+        return $this->clientId;
     }
 
     /**
      * @return string
      */
-    public function getUsername(): string
-    {
-        return $this->email;
-    }
-
-    public function eraseCredentials()
-    {
-        $this->plainPassword = null;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEmail()
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -177,21 +208,72 @@ class User implements UserInterface
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getId(): int
+    public function getOauthType(): string
     {
-        return $this->id;
+        return $this->oauthType;
+    }
+
+    /**
+     * @return DateTimeInterface
+     */
+    public function getLastLogin(): DateTimeInterface
+    {
+        return $this->lastLogin;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRoles(): array
+    {
+        $arr = json_decode($this->roles);
+        if(!is_array($arr) || !sizeof($arr)) $arr = array(self::ROLE_USER);
+
+        return $arr;
+    }
+    
+    /**
+     * @param $roles
+     *
+     * @return $this
+     */
+    public function setRoles($roles): self
+    {
+        $this->roles = json_encode($roles);
+
+        return $this;
     }
 
     /**
      * @return string
      */
-    public function getPlainPassword()
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+    
+    /**
+     * @param string $password
+     *
+     * @return User
+     */
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPlainPassword(): ?string
     {
         return $this->plainPassword;
     }
-
+    
     /**
      * @param string $plainPassword
      *
@@ -204,13 +286,29 @@ class User implements UserInterface
         return $this;
     }
 
+    /**
+     * @return null|string
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUsername(): string
+    {
+        return $this->email;
+    }
+
+    public function eraseCredentials(): void
+    {
+        $this->plainPassword = null;
+    }
 
 
-
-
-
-
-       /**
+   /**
      * @return string
      */
     public function getConfirmationCode(): string

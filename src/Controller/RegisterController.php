@@ -9,7 +9,7 @@ use App\Event\RegisteredUserEvent;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use App\Service\CodeGenerator;
-use App\Service\Mailer;
+// use App\Service\Mailer;
 // use App\Service\Mailer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+// use Symfony\Component\Serializer\Encoder\JsonEncoder;
 
 class RegisterController extends AbstractController
 {
@@ -30,14 +31,15 @@ class RegisterController extends AbstractController
         CodeGenerator $codeGenerator,
         EventDispatcherInterface $eventDispatcher
     ) {
-        $user = new User();
+        $debug="Default debug string";
+
+        $user = new User(null, '', '', '', json_encode(User::ROLE_USER));
         $form = $this->createForm(
             UserType::class,
             $user
         );
 
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $form->getData();
 
@@ -47,11 +49,9 @@ class RegisterController extends AbstractController
             );
             $user->setPassword($password);
             $user->setConfirmationCode($codeGenerator->getConfirmationCode());
-
             $user->setRoles(json_encode($user->getRoles()));
 
             $em = $this->getDoctrine()->getManager();
-
             $em->persist($user);
             $em->flush();
 
@@ -59,9 +59,10 @@ class RegisterController extends AbstractController
             $eventDispatcher->dispatch($userRegisteredEvent, RegisteredUserEvent::NAME);
         }
 
-          return $this->render('security/register.html.twig', [
-            'form' => $form->createView()
-            ]);
+        $debug .= "Debug: ". implode("<br>", $user->getRoles());       
+        return $this->render('security/register.html.twig', ['form' => $form->createView(), 'debug' => $debug]);
+        // return new Response($this->twig->render('security/login.html.twig', ['debug' => $debug]));
+        // return new Response($this->twig->render('security/register.html.twig', ['form' => $form->createView(), 'debug' => $debug]));
     }
 
     /**

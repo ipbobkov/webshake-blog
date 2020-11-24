@@ -42,7 +42,7 @@ class OAuthController extends AbstractController
                 'form_action' => '/login',
                 'last_username' => '$lastUsername',
                 'error' =>  new Error('Some error!'),
-                'debug' => 'Fucking fuckup is fucking on !!! :( <br>'
+                'debug' => 'Fucking fuckup is fucking on !!! :('
             ]);
         } else {
             return $this->redirectToRoute('blog_posts');

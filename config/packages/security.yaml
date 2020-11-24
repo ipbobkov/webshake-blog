@@ -14,17 +14,25 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+
         main:
+            anonymous: true
+            lazy: true
+            provider: database_users
+
             form_login:
                 check_path: login
                 login_path: login
                 default_target_path: blog_posts
-            anonymous: true
-            lazy: true
+
+            guard:
+                authenticators:
+                    - App\Security\OAuthGoogleAuthenticator
+
             logout:
                 path: logout
                 target: login         
-            provider: database_users
+            
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication

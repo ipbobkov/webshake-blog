@@ -94,22 +94,19 @@ class OAuthGoogleAuthenticator extends SocialAuthenticator
     public function getUser($credentials, UserProviderInterface $userProvider)
     {
         /** @var GoogleUser $googleUser */
-        $googleUser = $this->getGoogleClient()
-            ->fetchUserFromToken($credentials);
+        $googleUser = $this->getGoogleClient()->fetchUserFromToken($credentials);
 
         $email = $googleUser->getEmail();
 
         /** @var User $existingUser */
-        $existingUser = $this->userRepository
-            ->findOneBy(['clientId' => $googleUser->getId()]);
+        $existingUser = $this->userRepository->findOneBy(['clientId' => $googleUser->getId()]);
 
         if ($existingUser) {
             return $existingUser;
         }
 
         /** @var User $user */
-        $user = $this->userRepository
-            ->findOneBy(['email' => $email]);
+        $user = $this->userRepository->findOneBy(['email' => $email]);
 
         if (!$user) {
             $user = User::fromGoogleRequest(

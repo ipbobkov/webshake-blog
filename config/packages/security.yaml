@@ -20,14 +20,21 @@ security:
             lazy: true
             provider: database_users
 
+            remember_me:
+                secret:   '%kernel.secret%'
+                lifetime: 31536000
+                always_remember_me: true
+
             form_login:
                 check_path: login
                 login_path: login
                 default_target_path: blog_posts
 
             guard:
+                entry_point: App\Security\OAuthGoogleAuthenticator
                 authenticators:
                     - App\Security\OAuthGoogleAuthenticator
+                    - App\Security\OAuthGithubAuthenticator
 
             logout:
                 path: logout

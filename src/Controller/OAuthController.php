@@ -20,13 +20,48 @@ class OAuthController extends AbstractController
      *
      * @return RedirectResponse
      *
+     * @Route("/connect/github", name="connect_github_start")
+     */
+    public function redirectToGithubConnect(ClientRegistry $clientRegistry)
+    {
+        return $clientRegistry
+            ->getClient('github')
+            ->redirect(['user', 'public_repo'],[]);
+    }
+
+    /**
+     * @Route("/github/auth", name="github_auth")
+     *
+     * @return Response|RedirectResponse
+     */
+    public function authenticateGithubUser()
+    {
+        if (!$this->getUser()) {
+            // return new JsonResponse(['status' => false, 'message' => "User not found!"]);
+            return $this->render('security/login.html.twig', [
+                'form_action' => '/login',
+                'last_username' => '$lastUsername',
+                'error' =>  new Error('Some error!'),
+                'debug' => 'Fucking fuckup is fucking on !!! :('
+            ]);
+        } else {
+            return $this->redirectToRoute('blog_posts');
+        }
+    }
+
+
+    /**
+     * @param ClientRegistry $clientRegistry
+     *
+     * @return RedirectResponse
+     *
      * @Route("/connect/google", name="connect_google_start")
      */
     public function redirectToGoogleConnect(ClientRegistry $clientRegistry)
     {
         return $clientRegistry
             ->getClient('google')
-            ->redirect(['email'],[]);
+            ->redirect(['email', 'profile'],[]);
     }
 
     /**
